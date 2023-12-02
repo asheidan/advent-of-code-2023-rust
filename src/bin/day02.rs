@@ -35,19 +35,23 @@ struct Game {
 
 impl From<&String> for Game {
     fn from(value: &String) -> Self {
-        eprintln!("> {}", value);
+        //eprintln!("> {}", value);
         let [name, data, ..] = value.split(": ").collect::<Vec<_>>()[..] else { todo!() };
 
         let number = name[5..].parse::<u32>().unwrap();
 
-        let handfuls = data.split("; ")
-            .map(|hand_description| hand_description.split(", ")
-                 .map(|cube| Cube::from(cube))
-                 .collect::<Vec<_>>())
+        let handfuls = data
+            .split("; ")
+            .map(|hand_description| {
+                hand_description
+                    .split(", ")
+                    .map(|cube| Cube::from(cube))
+                    .collect::<Vec<_>>()
+            })
             .collect::<Vec<_>>();
 
         let result = Self { number, handfuls };
-        eprintln!("< {:?}", result);
+        //eprintln!("< {:?}", result);
 
         result
     }
@@ -56,26 +60,41 @@ impl From<&String> for Game {
 fn solution_a(data: &[String]) -> u32 {
     data.iter()
         .map(Game::from)
-        .map(|game| {  // Number of cubes shown per game
-            let valid_game = game.handfuls.iter()
-             .flatten()
-             .all(|cube| match *cube {
-                 Cube::Red(n) => n <= 12,
-                 Cube::Green(n) => n <= 13,
-                 Cube::Blue(n) => n <= 14,
-             });
+        .map(|game| {
+            // Number of cubes shown per round in each game
+            let valid_game = game.handfuls.iter().flatten().all(|cube| match *cube {
+                Cube::Red(n) => n <= 12,
+                Cube::Green(n) => n <= 13,
+                Cube::Blue(n) => n <= 14,
+            });
 
             if valid_game {
                 game.number
-            }
-            else {
+            } else {
                 0
             }
         })
-    .sum()
+        .sum()
 }
-fn solution_b(_data: &[String]) -> u32 {
-    0
+
+fn solution_b(data: &[String]) -> u32 {
+    data.iter()
+        .map(Game::from)
+        .map(|game| {
+            // "Power" cubes needed per game
+            let (red, green, blue) =
+                game.handfuls
+                    .iter()
+                    .flatten()
+                    .fold((0, 0, 0), |result, cube| match (result, cube) {
+                        ((r, g, b), Cube::Red(n)) => (u32::max(r, *n), g, b),
+                        ((r, g, b), Cube::Green(n)) => (r, u32::max(g, *n), b),
+                        ((r, g, b), Cube::Blue(n)) => (r, g, u32::max(b, *n)),
+                    });
+
+            red * green * blue
+        })
+        .sum()
 }
 
 fn main() {
