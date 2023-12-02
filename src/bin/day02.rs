@@ -9,7 +9,7 @@ enum Cube {
 
 impl From<&str> for Cube {
     fn from(value: &str) -> Self {
-        let [number_str, color, ..] = value.split(" ").collect::<Vec<_>>()[..] else { todo!() };
+        let [number_str, color, ..] = value.split(' ').collect::<Vec<_>>()[..] else { todo!() };
         let number = number_str.parse::<u32>().unwrap();
 
         match color {
@@ -35,7 +35,6 @@ struct Game {
 
 impl From<&String> for Game {
     fn from(value: &String) -> Self {
-        //eprintln!("> {}", value);
         let [name, data, ..] = value.split(": ").collect::<Vec<_>>()[..] else { todo!() };
 
         let number = name[5..].parse::<u32>().unwrap();
@@ -45,15 +44,12 @@ impl From<&String> for Game {
             .map(|hand_description| {
                 hand_description
                     .split(", ")
-                    .map(|cube| Cube::from(cube))
+                    .map(Cube::from)
                     .collect::<Vec<_>>()
             })
             .collect::<Vec<_>>();
 
-        let result = Self { number, handfuls };
-        //eprintln!("< {:?}", result);
-
-        result
+        Self { number, handfuls }
     }
 }
 
