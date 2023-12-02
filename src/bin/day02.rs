@@ -35,6 +35,7 @@ struct Game {
 
 impl From<&String> for Game {
     fn from(value: &String) -> Self {
+        eprintln!("> {}", value);
         let [name, data, ..] = value.split(": ").collect::<Vec<_>>()[..] else { todo!() };
 
         let number = name[5..].parse::<u32>().unwrap();
@@ -45,7 +46,10 @@ impl From<&String> for Game {
                  .collect::<Vec<_>>())
             .collect::<Vec<_>>();
 
-        Self { number, handfuls }
+        let result = Self { number, handfuls };
+        eprintln!("< {:?}", result);
+
+        result
     }
 }
 
@@ -53,15 +57,15 @@ fn solution_a(data: &[String]) -> u32 {
     data.iter()
         .map(Game::from)
         .map(|game| {  // Number of cubes shown per game
-            let (red, green, blue) = game.handfuls.iter()
+            let valid_game = game.handfuls.iter()
              .flatten()
-             .fold((0, 0, 0), |result, cube| match (result, cube) {
-                 ((r, g, b), Cube::Red(n)) => (r + n, g, b),
-                 ((r, g, b), Cube::Green(n)) => (r, g + n, b),
-                 ((r, g, b), Cube::Blue(n)) => (r, g, b + n),
+             .all(|cube| match *cube {
+                 Cube::Red(n) => n <= 12,
+                 Cube::Green(n) => n <= 13,
+                 Cube::Blue(n) => n <= 14,
              });
 
-            if red <= 12 && green <= 13 && blue <= 14 {
+            if valid_game {
                 game.number
             }
             else {
