@@ -1,5 +1,6 @@
 use std::io::BufRead;
 
+use regex::Match;
 use regex::Regex;
 
 fn solution_a(data: &str) -> u32 {
@@ -52,31 +53,21 @@ fn solution_b(data: &str) -> u32 {
             let y = index / line_width;
             let x = index % line_width;
 
-            eprintln!("*:  {}", x);
-
             // Get numbers on lines next to gear
-            // TODO: Seems the wrong lines are considered for tha matching
             let adjacent_numbers: Vec<_> = number_matches[y.saturating_sub(1)..y.saturating_add(2)].iter()
                 .flatten()
                 .filter(|&m| {
-                    let start = m.start();
-                    let end = m.end();
+                    // Extend the range to cover adjacent characters
+                    let search_range = m.start().saturating_sub(1)..m.end().saturating_add(1);
 
-                    eprint!(" : {}, {} | {}\t|", start, end, m.as_str());
-
-                    let result = (start <= x && end >= x)  // Numbers spans gear location
-                        ||
-                    (end == x || start == x+1);
-
-                    eprintln!(" {}", result);
-
-                    result
+                    search_range.contains(&x)
                 })
-                .map(|m| m.as_str().parse::<u32>().unwrap())
                 .collect();
 
+            let as_u32 = |m: &Match| m.as_str().parse::<u32>().unwrap();
+
             match adjacent_numbers[..] {
-                [a, b] => a * b,
+                [a, b] => as_u32(a) * as_u32(b),
                 _ => 0,
             }
 
@@ -91,8 +82,6 @@ fn main() {
         .read_until(0, &mut buffer).unwrap();
 
     let data  = String::from_utf8(buffer).unwrap();
-
-    let _foo = &data[..];
 
     println!("A: {}", solution_a(&data));
     println!("B: {}", solution_b(&data));
@@ -109,30 +98,14 @@ mod tests {
         assert_eq!(0, result);
     }
 
-    mod foo {
-        //use super::*;
+    mod ranges {
+        #[test]
+        fn foo() {
+            // When
+            let result = (1..=3).contains(&3);
 
-        macro_rules! from_tests {
-            ($($name:ident: $value: expr,)*) => {
-            $(
-                #[test]
-                fn $name() {
-                    // Given
-                    let (input, expected) = $value;
-                    let input = String::from(input);
-
-                    // When
-                    let result = input.parse::<u32>().unwrap();
-
-                    // Then
-                    assert_eq!(expected, result);
-                }
-            )*
-            }
-        }
-
-        from_tests! {
-            one_1: ("1", 1),
+            // Then
+            assert!(result);
         }
     }
 }
