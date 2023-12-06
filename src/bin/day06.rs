@@ -4,16 +4,16 @@ use std::io::BufRead;
 
 
 fn number_of_wins(time: i64, distance: i64) -> i64 {
+    // Prepare for aproximate solve
     let half_time = time as f64 / 2.0;
     let root_portion = f64::sqrt(f64::powi(half_time, 2) - (distance as f64));
 
-    eprint!(" | {} | {}", half_time, root_portion);
-
+    // Find approximate roots, aim for low value
     let start_search = (half_time - root_portion).floor() as i64;
     let end_search = (half_time + root_portion).floor() as i64;
 
-    eprint!(" | s:{} | :e{}", start_search, end_search);
-
+    // Find "exact" roots or limits of the interval (inclusive start, exclusive end)
+    // 5 should be enough...
     let start = (start_search..(start_search + 5))
         .find(|t| (time - t) * t > distance)
         .unwrap();
@@ -21,11 +21,10 @@ fn number_of_wins(time: i64, distance: i64) -> i64 {
         .find(|t| (time - t) * t <= distance)
         .unwrap();
 
-    eprintln!(" | {} - {}", end, start);
-
     end - start
 
     /*
+    // Exhaustive search
     (0..time)
         .filter(|t| (time - t) * t > distance)
         .count() as i64
@@ -41,7 +40,7 @@ fn solution_a(data: &[Vec<i64>]) -> i64 {
             })
             .reduce(|a, b| a * b)
             .unwrap()
-   }
+    }
     else {
         panic!("Wrong number of vectors");
     }
@@ -72,51 +71,28 @@ fn main() {
 mod tests {
     use super::*;
 
-    #[test]
-    fn example_1() {
-        // Given
-        let time = 7;
-        let distance = 9;
+    macro_rules! examples {
+        ($($name:ident: $value: expr,)*) => {
+        $(
+            #[test]
+            fn $name() {
+                // Given
+                let (time, distance, expected) = $value;
 
-        let result = number_of_wins(time, distance);
+                // When
+                let result = number_of_wins(time, distance);
 
-        let expected = 4;
-        assert_eq!(expected, result);
+                // Then
+                assert_eq!(expected, result);
+            }
+        )*
+        }
     }
 
-    #[test]
-    fn example_2() {
-        // Given
-        let time = 15;
-        let distance = 40;
-
-        let result = number_of_wins(time, distance);
-
-        let expected = 8;
-        assert_eq!(expected, result);
-    }
-
-    #[test]
-    fn example_3() {
-        // Given
-        let time = 30;
-        let distance = 200;
-
-        let result = number_of_wins(time, distance);
-
-        let expected = 9;
-        assert_eq!(expected, result);
-    }
-
-    #[test]
-    fn example_4() {
-        // Given
-        let time = 71530;
-        let distance = 940200;
-
-        let result = number_of_wins(time, distance);
-
-        let expected = 71503;
-        assert_eq!(expected, result);
+    examples! {
+        example_1_1: (7, 9, 4),
+        example_1_2: (15, 40, 8),
+        example_1_3: (30, 200, 9),
+        example_2_1: (71530, 940200, 71503),
     }
 }
